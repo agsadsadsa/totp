@@ -78,22 +78,22 @@
     let countdown = 30;
     let interval;
 
-    function startAuto() {
-      const input = document.getElementById("secret").value.trim();
-      if (!input) {
-        document.getElementById("status").textContent = "密钥不能为空";
-        return;
-      }
+function startAuto() {
+  const input = document.getElementById("secret").value.trim();
+  if (!input) {
+    document.getElementById("status").textContent = "密钥不能为空";
+    return;
+  }
 
-      secretValue = input;
-      fetchAndUpdate();
-      if (interval) clearInterval(interval);
-      interval = setInterval(() => {
-        countdown = 30 - (Math.floor(Date.now() / 1000) % 30);
-        updateCountdownBar();
-        if (countdown === 30) fetchAndUpdate();
-      }, 1000);
-    }
+  secretValue = input.replace(/\s+/g, ''); // 🧼 清除空格
+  fetchAndUpdate();
+  if (interval) clearInterval(interval);
+  interval = setInterval(() => {
+    countdown = 30 - (Math.floor(Date.now() / 1000) % 30);
+    updateCountdownBar();
+    if (countdown === 30) fetchAndUpdate();
+  }, 1000);
+}
 
     async function fetchAndUpdate() {
       try {
