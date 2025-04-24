@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2FA 验证码生成器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      width: 400px;
+      text-align: center;
+    }
+    h2 {
+      color: #1a73e8;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin: 10px 0 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .token-box {
+      font-size: 30px;
+      letter-spacing: 10px;
+      margin: 20px 0;
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .status {
+      font-size: 14px;
+      color: gray;
+      margin-top: 10px;
+    }
+    .countdown-bar {
+      height: 5px;
+      background-color: #4caf50;
+      transition: width 1s linear;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>2FA 验证码生成器</h2>
+    <input type="text" id="secret" placeholder="输入您的密钥，例如：JBSWY3DPEHPK3PXP" />
+    <button onclick="startAuto()">开始生成验证码</button>
+    <div class="token-box" id="token">------</div>
+    <div class="status" id="status">请输入密钥并点击按钮</div>
+    <div class="countdown-bar" id="bar" style="width: 100%;"></div>
+  </div>
+
+  <script>
+    let secretValue = "";
+    let countdown = 30;
+    let interval;
+
+    function startAuto() {
+      const input = document.getElementById("secret").value.trim();
+      if (!input) {
+        document.getElementById("status").textContent = "密钥不能为空";
+        return;
+      }
+
+      secretValue = input;
+      fetchAndUpdate();
+      if (interval) clearInterval(interval);
+      interval = setInterval(() => {
+        countdown = 30 - (Math.floor(Date.now() / 1000) % 30);
+        updateCountdownBar();
+        if (countdown === 30) fetchAndUpdate();
+      }, 1000);
+    }
+
+    async function fetchAndUpdate() {
+      try {
+        const res = await fetch(`/api/totp?secret=${encodeURIComponent(secretValue)}`);
+        const token = await res.text();
+        document.getElementById("token").textContent = token;
+        document.getElementById("status").textContent = "验证码每 30 秒自动更新";
+      } catch (e) {
+        document.getElementById("token").textContent = "------";
+        document.getElementById("status").textContent = "生成失败：" + e.message;
+      }
+    }
+
+    function updateCountdownBar() {
+      const percent = (countdown / 30) * 100;
+      document.getElementById("bar").style.width = percent + "%";
+    }
+  </script>
+
+</body>
+</html>
